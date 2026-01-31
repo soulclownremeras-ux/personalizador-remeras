@@ -2,370 +2,398 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personalizador SoulClown</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SoulClown Studio | Diseña tu Estilo</title>
     
-    <!-- React & ReactDOM (Versión de Producción para mayor estabilidad) -->
+    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel para JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Permanent+Marker&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .font-bebas { font-family: 'Bebas Neue', cursive; }
-        .font-pacifico { font-family: 'Pacifico', cursive; }
-        .font-inter { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: #0f0f0f; 
+            color: white; 
+            overflow: hidden; 
+        }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Estilo para mensajes de error */
-        #error-container { display: none; padding: 20px; background: #fee2e2; color: #991b1b; border: 1px solid #f87171; margin: 20px; border-radius: 8px; font-family: monospace; }
-    </style>
 
-    <!-- Script de seguridad para detectar errores -->
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            const errorBox = document.getElementById('error-container');
-            if (errorBox) {
-                errorBox.style.display = 'block';
-                errorBox.innerHTML = `<strong>⚠️ Ocurrió un error:</strong><br>${message}<br><small>Línea: ${lineno}</small>`;
-            }
-        };
-    </script>
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Estilos para Rango (Slider) */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #333; border-radius: 2px;
+        }
+
+        .loader { border: 4px solid #333; border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <!-- Contenedor de Error (Invisible por defecto) -->
-    <div id="error-container"></div>
-
-    <!-- Contenedor Principal de la App -->
     <div id="root">
-        <div style="height: 100vh; display: flex; align-items: center; justify-content: center; color: #666;">
-            Cargando personalizador...
+        <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000;">
+            <div class="loader"></div>
+            <p style="margin-top: 20px; font-family: sans-serif; letter-spacing: 2px; font-size: 0.8rem;">CARGANDO STUDIO...</p>
         </div>
     </div>
 
     <script type="text/babel">
-        // Captura segura de React
         const { useState, useEffect, useRef } = React;
 
-        // --- ICONOS (Optimizados para aceptar props) ---
-        const IconShirt = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>;
-        const IconType = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>;
-        const IconImage = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>;
-        const IconTrash = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 6h18"/><path d="M19 6v14c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V6"/><path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2"/></svg>;
-        const IconEye = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>;
-        const IconX = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>;
+        // --- ICONOS ---
+        const Icons = {
+            Shirt: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>,
+            Text: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>,
+            Image: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+            Trash: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+            Rotate: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>,
+            Check: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>,
+        };
 
-        // --- DATOS ---
-        const SHIRT_COLORS = [
-            { name: "Blanco", hex: "#FFFFFF", border: "border-gray-200" },
-            { name: "Negro", hex: "#1a1a1a", border: "border-gray-800" },
-            { name: "Gris", hex: "#9CA3AF", border: "border-gray-400" },
-            { name: "Rojo", hex: "#EF4444", border: "border-red-500" },
-            { name: "Azul", hex: "#3B82F6", border: "border-blue-500" },
-            { name: "Amarillo", hex: "#EAB308", border: "border-yellow-500" },
-            { name: "Verde", hex: "#22C55E", border: "border-green-500" },
+        // --- CONFIGURACIÓN DE PRODUCTOS (MOCKUPS REALES) ---
+        // Ajustamos 'area' para definir donde cae la estampa en cada foto
+        const PRODUCTS = [
+            { 
+                id: 'man', 
+                name: 'Hombre', 
+                image: './remera-negra.jpg', 
+                area: { top: '22%', left: '29%', width: '42%', height: '55%' } 
+            },
+            { 
+                id: 'woman', 
+                name: 'Mujer', 
+                image: './remera-mujer.jpg', 
+                area: { top: '25%', left: '30%', width: '40%', height: '50%' } 
+            },
+            { 
+                id: 'child', 
+                name: 'Niño', 
+                image: './remera-nino.jpg', 
+                area: { top: '24%', left: '28%', width: '44%', height: '52%' } 
+            },
+            { 
+                id: 'hoodie', 
+                name: 'Buzo', 
+                image: './buzo.jpg', 
+                area: { top: '28%', left: '32%', width: '36%', height: '40%' } 
+            },
         ];
 
-        const FONTS = [
-            { name: "Clásica", family: "font-inter" },
-            { name: "Urbana", family: "font-bebas" },
-            { name: "Cursiva", family: "font-pacifico" },
-            { name: "Serif", family: "serif" },
-        ];
-
-        // --- APP PRINCIPAL ---
         function App() {
-            const [shirtColor, setShirtColor] = useState(SHIRT_COLORS[0]);
-            const [elements, setElements] = useState([]);
+            // Estados
+            const [currentProduct, setCurrentProduct] = useState(PRODUCTS[0]);
+            const [side, setSide] = useState('front'); // front only for these photos currently
+            const [elements, setElements] = useState([]); // Array de elementos
             const [selectedId, setSelectedId] = useState(null);
-            const [activeTab, setActiveTab] = useState('color'); 
-            const [previewMode, setPreviewMode] = useState(false);
-            
+            const [activeTool, setActiveTool] = useState(null);
+            const [isDragging, setIsDragging] = useState(false);
+
+            // Refs
             const dragItem = useRef(null);
             const dragStartPos = useRef({ x: 0, y: 0 });
-
-            // Agregar Texto
-            const addText = () => {
-                const newId = Date.now();
-                setElements([...elements, {
-                    id: newId, type: 'text', content: 'TU TEXTO',
-                    x: 50, y: 40, color: '#000000', size: 30,
-                    font: 'font-bebas', rotation: 0
-                }]);
-                setSelectedId(newId);
-                setActiveTab('text');
+            
+            // --- Logica Elementos ---
+            const addElement = (newEl) => {
+                const id = Date.now();
+                // Posición inicial centrada
+                const el = { ...newEl, id, x: 50, y: 50, rotation: 0, scale: 1 };
+                setElements(prev => [...prev, el]);
+                setSelectedId(id);
             };
 
-            // Agregar Imagen
+            const updateElement = (id, updates) => {
+                setElements(prev => prev.map(el => el.id === id ? { ...el, ...updates } : el));
+            };
+
+            const removeElement = (id) => {
+                setElements(prev => prev.filter(el => el.id !== id));
+                setSelectedId(null);
+            };
+
+            // --- Drag & Drop Táctil/Mouse ---
+            const handleStart = (e, id) => {
+                e.stopPropagation();
+                setSelectedId(id);
+                dragItem.current = id;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                dragStartPos.current = { x: clientX, y: clientY };
+                setIsDragging(true);
+            };
+
+            const handleMove = (e) => {
+                if (!isDragging || !dragItem.current) return;
+                
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                const dx = clientX - dragStartPos.current.x;
+                const dy = clientY - dragStartPos.current.y;
+                
+                // Sensibilidad del movimiento
+                const factor = 0.2; 
+
+                setElements(prev => prev.map(el => {
+                    if (el.id === dragItem.current) {
+                        return { ...el, x: el.x + dx * factor, y: el.y + dy * factor };
+                    }
+                    return el;
+                }));
+                
+                dragStartPos.current = { x: clientX, y: clientY };
+            };
+
+            const handleEnd = () => {
+                setIsDragging(false);
+                dragItem.current = null;
+            };
+
             const handleImageUpload = (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const newId = Date.now();
-                        setElements([...elements, {
-                            id: newId, type: 'image', content: event.target.result,
-                            x: 50, y: 40, size: 100, rotation: 0
-                        }]);
-                        setSelectedId(newId);
-                        setActiveTab('images');
-                    };
+                    reader.onload = (ev) => addElement({ type: 'image', content: ev.target.result, width: 40 });
                     reader.readAsDataURL(file);
                 }
             };
 
-            const deleteElement = (id) => {
-                setElements(elements.filter(el => el.id !== id));
-                if (selectedId === id) setSelectedId(null);
-            };
-
-            const updateElement = (id, prop, value) => {
-                setElements(elements.map(el => el.id === id ? { ...el, [prop]: value } : el));
-            };
-
-            // Mover Elementos
-            const handleMouseDown = (e, id) => {
-                if (previewMode) return;
-                e.stopPropagation();
-                setSelectedId(id);
-                dragItem.current = id;
-                dragStartPos.current = { x: e.clientX, y: e.clientY };
-            };
-
-            const handleMouseMove = (e) => {
-                if (!dragItem.current || previewMode) return;
-                const deltaX = e.clientX - dragStartPos.current.x;
-                const deltaY = e.clientY - dragStartPos.current.y;
-
-                setElements(prev => prev.map(el => {
-                    if (el.id === dragItem.current) {
-                        return { ...el, x: el.x + (deltaX / 3.5), y: el.y + (deltaY / 3.5) };
-                    }
-                    return el;
-                }));
-                dragStartPos.current = { x: e.clientX, y: e.clientY };
-            };
-
-            const handleMouseUp = () => { dragItem.current = null; };
-
-            const renderElements = () => {
-                return elements.map(el => {
-                    const isSelected = el.id === selectedId && !previewMode;
-                    const style = {
-                        position: 'absolute', top: `${el.y}%`, left: `${el.x}%`,
-                        transform: `translate(-50%, -50%) rotate(${el.rotation}deg)`,
-                        cursor: previewMode ? 'default' : 'move',
-                        border: isSelected ? '2px dashed #3B82F6' : '2px solid transparent',
-                        zIndex: 10, userSelect: 'none'
-                    };
-
-                    if (el.type === 'text') {
-                        return (
-                            <div key={el.id} style={{...style, color: el.color, fontSize: `${el.size}px`}}
-                                className={`whitespace-nowrap ${el.font}`}
-                                onMouseDown={(e) => handleMouseDown(e, el.id)}
-                                onTouchStart={(e) => {
-                                    dragItem.current = el.id;
-                                    dragStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                                    setSelectedId(el.id);
-                                }}
-                            >
-                                {el.content}
-                                {isSelected && (
-                                    <button onClick={(e) => { e.stopPropagation(); deleteElement(el.id); }} 
-                                        className="absolute -top-4 -right-4 bg-red-500 text-white rounded-full p-1 shadow-sm flex items-center justify-center">
-                                        <IconTrash size={12} strokeWidth={3} />
-                                    </button>
-                                )}
-                            </div>
-                        );
-                    } else {
-                        return (
-                            <div key={el.id} style={style} onMouseDown={(e) => handleMouseDown(e, el.id)}
-                                onTouchStart={(e) => {
-                                    dragItem.current = el.id;
-                                    dragStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                                    setSelectedId(el.id);
-                                }}
-                            >
-                                <img src={el.content} style={{ width: `${el.size}px`, pointerEvents: 'none' }} />
-                                {isSelected && (
-                                    <button onClick={(e) => { e.stopPropagation(); deleteElement(el.id); }} 
-                                        className="absolute -top-4 -right-4 bg-red-500 text-white rounded-full p-1 shadow-sm flex items-center justify-center">
-                                        <IconTrash size={12} strokeWidth={3} />
-                                    </button>
-                                )}
-                            </div>
-                        );
-                    }
-                });
-            };
-
-            const currentEl = elements.find(el => el.id === selectedId);
-
+            // --- Render UI ---
             return (
-                <div className="min-h-screen flex flex-col md:flex-row bg-white overflow-hidden" 
-                     onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}
-                     onTouchMove={(e) => {
-                         if (!dragItem.current) return;
-                         const t = e.touches[0];
-                         const dX = t.clientX - dragStartPos.current.x;
-                         const dY = t.clientY - dragStartPos.current.y;
-                         setElements(prev => prev.map(el => el.id === dragItem.current ? {...el, x: el.x + (dX/3.5), y: el.y + (dY/3.5)} : el));
-                         dragStartPos.current = { x: t.clientX, y: t.clientY };
-                     }}
-                     onTouchEnd={handleMouseUp}
+                <div 
+                    className="h-screen w-full flex flex-col md:flex-row bg-[#0f0f0f] text-white overflow-hidden"
+                    onMouseMove={handleMove}
+                    onMouseUp={handleEnd}
+                    onTouchMove={handleMove}
+                    onTouchEnd={handleEnd}
                 >
                     
-                    {/* VISUALIZADOR */}
-                    <div className="flex-1 bg-gray-100 relative flex items-center justify-center p-4 min-h-[50vh]">
-                        <button onClick={() => { setPreviewMode(!previewMode); setSelectedId(null); }}
-                            className="absolute top-4 right-4 z-20 bg-white p-2 rounded-full shadow-lg hover:bg-gray-50 text-gray-700">
-                            {previewMode ? <IconX className="w-6 h-6"/> : <IconEye className="w-6 h-6"/>}
-                        </button>
+                    {/* HEADER */}
+                    <div className="md:hidden flex justify-between items-center p-4 z-20 bg-[#0f0f0f]/90 backdrop-blur-md sticky top-0 border-b border-white/10">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black font-black text-xs">SC</div>
+                            <span className="font-bold tracking-widest text-sm">SOULCLOWN</span>
+                        </div>
+                        {/* Sin Precio */}
+                    </div>
 
-                        <div className="relative w-full max-w-md aspect-[4/5] flex items-center justify-center">
-                            {/* SVG Remera */}
-                            <svg className="w-full h-full drop-shadow-2xl transition-colors duration-300" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                                <path fill={shirtColor.hex} d="M378.5,64.5c-15.8,18-47.4,17.8-59.6,17.8c-14.8,0-38.6-2.5-51.4-8.7C254,67.1,245.4,64.5,229.5,64.5c-42.6,0-78,1.4-86.8,4.5c-8.9,3.1-41.6,14-49.8,24.3c-7.2,9-62.8,77.9-62.8,77.9s-7.8,11.2,3.1,22c6.2,6.1,28.8,21.9,28.8,21.9s9.5,6.1,17.9-3.7c10.4-12.1,38.2-46.6,38.2-46.6s4.5-4.5,7.8,1.1c2.4,4,2.2,217.5,2.2,217.5s-0.3,37.2,33.5,37.2c27.1,0,147,0,172.8,0c33.8,0,32.4-37.2,32.4-37.2s-0.6-213.5,1.7-217.5c2.4-4.2,7.8-1.1,7.8-1.1s27.9,34.5,38.2,46.6c8.4,9.8,17.9,3.7,17.9,3.7s22.6-15.8,28.8-21.9c10.9-10.9,3.1-22,3.1-22s-55.6-68.9-62.8-77.9C423.1,81.5,419.5,64.5,378.5,64.5z"/>
-                                <path fill="black" fillOpacity="0.1" style={{mixBlendMode: 'multiply'}} d="M378.5,64.5c-15.8,18-47.4,17.8-59.6,17.8c-14.8,0-38.6-2.5-51.4-8.7C254,67.1,245.4,64.5,229.5,64.5c-42.6,0-78,1.4-86.8,4.5c-8.9,3.1-41.6,14-49.8,24.3c-7.2,9-62.8,77.9-62.8,77.9s-7.8,11.2,3.1,22c6.2,6.1,28.8,21.9,28.8,21.9s9.5,6.1,17.9-3.7c10.4-12.1,38.2-46.6,38.2-46.6s4.5-4.5,7.8,1.1c2.4,4,2.2,217.5,2.2,217.5s-0.3,37.2,33.5,37.2c27.1,0,147,0,172.8,0c33.8,0,32.4-37.2,32.4-37.2s-0.6-213.5,1.7-217.5c2.4-4.2,7.8-1.1,7.8-1.1s27.9,34.5,38.2,46.6c8.4,9.8,17.9,3.7,17.9,3.7s22.6-15.8,28.8-21.9c10.9-10.9,3.1-22,3.1-22s-55.6-68.9-62.8-77.9C423.1,81.5,419.5,64.5,378.5,64.5z"/>
-                            </svg>
-                            {/* Area Imprimible */}
-                            <div className="absolute top-[20%] left-[28%] w-[44%] h-[60%] overflow-hidden">
-                                {renderElements()}
+                    {/* CANVAS PRINCIPAL */}
+                    <div className="flex-1 relative flex items-center justify-center bg-[#1a1a1a] overflow-hidden">
+                        
+                        <div className="relative w-full max-w-[600px] h-full flex items-center justify-center p-4 animate-pop transition-all duration-500">
+                            
+                            {/* IMAGEN DE FONDO (MOCKUP REAL) */}
+                            <div className="relative w-full h-full flex items-center justify-center">
+                                <img 
+                                    src={currentProduct.image} 
+                                    alt="Producto" 
+                                    className="max-h-[85vh] max-w-full object-contain drop-shadow-2xl"
+                                    onError={(e) => {
+                                        e.target.onerror = null; 
+                                        // Placeholder por si falla la carga local
+                                        e.target.src = "https://via.placeholder.com/600x800/111/fff?text=Imagen+No+Encontrada"; 
+                                    }}
+                                />
+
+                                {/* AREA DE DISEÑO DEFINIDA POR PRODUCTO */}
+                                <div 
+                                    className="absolute overflow-hidden" // border border-white/20 para debug
+                                    style={{ 
+                                        top: currentProduct.area.top, 
+                                        left: currentProduct.area.left, 
+                                        width: currentProduct.area.width, 
+                                        height: currentProduct.area.height,
+                                        zIndex: 10
+                                    }}
+                                >
+                                    {elements.map(el => (
+                                        <div
+                                            key={el.id}
+                                            onMouseDown={(e) => handleStart(e, el.id)}
+                                            onTouchStart={(e) => handleStart(e, el.id)}
+                                            style={{
+                                                position: 'absolute',
+                                                top: `${el.y}%`,
+                                                left: `${el.x}%`,
+                                                transform: `translate(-50%, -50%) rotate(${el.rotation}deg) scale(${el.scale})`,
+                                                cursor: 'grab',
+                                                width: el.type === 'text' ? 'auto' : `${el.width}%`,
+                                                maxWidth: '100%',
+                                                touchAction: 'none'
+                                            }}
+                                            className={`group ${selectedId === el.id ? 'z-50' : 'z-10'}`}
+                                        >
+                                            {el.type === 'text' ? (
+                                                <div 
+                                                    className="whitespace-nowrap font-bold text-2xl font-sans px-2 py-1"
+                                                    style={{ color: el.color, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
+                                                >
+                                                    {el.content}
+                                                </div>
+                                            ) : (
+                                                <img src={el.content} className="w-full h-full object-contain pointer-events-none drop-shadow-md" />
+                                            )}
+
+                                            {/* Marco y Controles al seleccionar */}
+                                            {selectedId === el.id && (
+                                                <div className="absolute -inset-4 border-2 border-white/50 rounded-lg pointer-events-none">
+                                                    {/* Botón Borrar */}
+                                                    <div className="absolute -top-3 -right-3 bg-red-600 text-white p-1.5 rounded-full shadow-lg cursor-pointer pointer-events-auto hover:scale-110 transition"
+                                                        onTouchStart={(e) => { e.stopPropagation(); removeElement(el.id); }}
+                                                        onMouseDown={(e) => { e.stopPropagation(); removeElement(el.id); }}>
+                                                        <Icons.Trash />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
+
                         </div>
                     </div>
 
                     {/* PANEL DE HERRAMIENTAS */}
-                    {!previewMode && (
-                    <div className="w-full md:w-80 bg-white border-l border-gray-200 p-6 flex flex-col gap-6 shadow-xl z-20 h-[40vh] md:h-auto overflow-y-auto">
-                        <div className="flex justify-between items-center mb-2">
-                            <h2 className="text-xl font-bold font-inter text-gray-800">Personalizar</h2>
-                        </div>
-
-                        {/* Pestañas */}
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
-                            {['color', 'text', 'images'].map(tab => (
-                                <button key={tab} onClick={() => setActiveTab(tab)}
-                                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${activeTab === tab ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                                    {tab === 'color' ? 'Color' : tab === 'text' ? 'Texto' : 'Imagen'}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Contenido Pestañas */}
-                        <div className="flex-1 overflow-y-auto no-scrollbar">
-                            
-                            {/* COLOR */}
-                            {activeTab === 'color' && (
-                                <div className="grid grid-cols-4 gap-3">
-                                    {SHIRT_COLORS.map((c) => (
-                                        <button key={c.hex} onClick={() => setShirtColor(c)}
-                                            className={`w-12 h-12 rounded-full border-2 shadow-sm transition-transform hover:scale-110 ${c.border} ${shirtColor.hex === c.hex ? 'ring-2 ring-offset-2 ring-gray-900' : ''}`}
-                                            style={{ backgroundColor: c.hex }}
-                                            title={c.name}
-                                        />
-                                    ))}
+                    <div className="bg-[#111] border-t border-white/10 z-20 flex flex-col pb-safe w-full md:w-auto">
+                        
+                        {/* Sub-Menú Activo */}
+                        {activeTool && (
+                            <div className="bg-[#1a1a1a] p-4 animate-pop border-b border-white/5 absolute bottom-full w-full left-0 md:static md:w-80">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                        {activeTool === 'product' && 'SELECCIONA PRENDA'}
+                                        {activeTool === 'text' && 'AGREGAR TEXTO'}
+                                        {activeTool === 'edit' && 'AJUSTES'}
+                                    </h3>
+                                    <button onClick={() => setActiveTool(null)} className="text-gray-500 hover:text-white"><Icons.Check/></button>
                                 </div>
-                            )}
 
-                            {/* TEXTO */}
-                            {activeTab === 'text' && (
-                                <div className="space-y-4">
-                                    <button onClick={addText} className="w-full bg-black text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition">
-                                        <IconType size={18} className="mr-2" /> Agregar Nuevo Texto
-                                    </button>
+                                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                                     
-                                    {selectedId && currentEl?.type === 'text' && (
-                                        <div className="bg-gray-50 p-4 rounded-lg space-y-3 border">
-                                            <p className="text-xs font-bold text-gray-400 uppercase">Editando Texto</p>
-                                            <input type="text" value={currentEl.content} 
-                                                onChange={(e) => updateElement(selectedId, 'content', e.target.value)}
-                                                className="w-full p-2 border rounded font-inter" placeholder="Escribe aquí..."
-                                            />
-                                            <div className="flex gap-2">
-                                                <input type="color" value={currentEl.color} 
-                                                    onChange={(e) => updateElement(selectedId, 'color', e.target.value)}
-                                                    className="h-10 w-10 p-0 border-0 rounded cursor-pointer"
-                                                />
-                                                <input type="range" min="12" max="100" value={currentEl.size} 
-                                                    onChange={(e) => updateElement(selectedId, 'size', Number(e.target.value))}
-                                                    className="flex-1"
-                                                />
+                                    {/* Selector de Producto */}
+                                    {activeTool === 'product' && PRODUCTS.map(p => (
+                                        <button 
+                                            key={p.id} 
+                                            onClick={() => setCurrentProduct(p)} 
+                                            className={`flex flex-col items-center gap-2 min-w-[80px] p-2 rounded-lg transition ${currentProduct.id === p.id ? 'bg-white/10 ring-1 ring-white' : 'hover:bg-white/5'}`}
+                                        >
+                                            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 border border-white/10">
+                                                <img src={p.image} className="w-full h-full object-cover" />
                                             </div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {FONTS.map(f => (
-                                                    <button key={f.name} onClick={() => updateElement(selectedId, 'font', f.family)}
-                                                        className={`border p-2 rounded text-sm ${f.family} ${currentEl.font === f.family ? 'bg-black text-white' : 'bg-white'}`}>
-                                                        {f.name}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <label className="text-xs text-gray-400">Rotación</label>
-                                            <input type="range" min="0" max="360" value={currentEl.rotation} 
-                                                onChange={(e) => updateElement(selectedId, 'rotation', Number(e.target.value))}
-                                                className="w-full" title="Rotación"
+                                            <span className="text-[10px] font-bold uppercase">{p.name}</span>
+                                        </button>
+                                    ))}
+
+                                    {/* Herramienta Texto */}
+                                    {activeTool === 'text' && (
+                                        <div className="flex gap-2 w-full">
+                                            <input type="text" placeholder="TU FRASE..." className="flex-1 bg-transparent border-b border-white text-white p-2 outline-none font-bold text-lg uppercase" 
+                                                onKeyDown={(e) => {
+                                                    if(e.key === 'Enter' && e.target.value) {
+                                                        addElement({ type: 'text', content: e.target.value, color: '#ffffff' });
+                                                        e.target.value = '';
+                                                    }
+                                                }}
                                             />
+                                            <button className="bg-white text-black px-4 font-bold rounded hover:bg-gray-200" onClick={(e) => {
+                                                const input = e.target.previousSibling;
+                                                if(input.value) {
+                                                    addElement({ type: 'text', content: input.value, color: '#ffffff' });
+                                                    input.value = '';
+                                                }
+                                            }}>OK</button>
                                         </div>
                                     )}
-                                </div>
-                            )}
 
-                            {/* IMAGENES */}
-                            {activeTab === 'images' && (
-                                <div className="space-y-4">
-                                    <label className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-900 hover:bg-gray-50 transition">
-                                        <IconImage className="w-8 h-8 text-gray-400 mb-2"/>
-                                        <span className="text-sm text-gray-500">Subir imagen o logo</span>
-                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                                    </label>
-
-                                    {selectedId && currentEl?.type === 'image' && (
-                                        <div className="bg-gray-50 p-4 rounded-lg space-y-3 border">
-                                            <p className="text-xs font-bold text-gray-400 uppercase">Ajustar Imagen</p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs">Tamaño:</span>
-                                                <input type="range" min="50" max="300" value={currentEl.size} 
-                                                    onChange={(e) => updateElement(selectedId, 'size', Number(e.target.value))}
-                                                    className="flex-1"
+                                    {/* Herramienta Edición */}
+                                    {activeTool === 'edit' && selectedId && (
+                                        <div className="flex flex-col w-full gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-xs w-12 text-gray-400 font-mono">ROTAR</span>
+                                                <input type="range" min="0" max="360" className="flex-1 accent-white" 
+                                                    onChange={(e) => updateElement(selectedId, { rotation: parseInt(e.target.value) })}
                                                 />
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs">Rotar:</span>
-                                                <input type="range" min="0" max="360" value={currentEl.rotation} 
-                                                    onChange={(e) => updateElement(selectedId, 'rotation', Number(e.target.value))}
-                                                    className="flex-1"
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-xs w-12 text-gray-400 font-mono">TAMAÑO</span>
+                                                <input type="range" min="0.5" max="3" step="0.1" className="flex-1 accent-white" 
+                                                    onChange={(e) => updateElement(selectedId, { scale: parseFloat(e.target.value) })}
                                                 />
                                             </div>
                                         </div>
                                     )}
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Barra de Herramientas Principal */}
+                        <div className="flex justify-around items-center p-2 md:p-6 w-full max-w-4xl mx-auto bg-[#111]">
+                            
+                            {/* Botón Cambiar Prenda */}
+                            <button 
+                                onClick={() => setActiveTool(activeTool === 'product' ? null : 'product')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 ${activeTool === 'product' ? 'bg-white text-black scale-105' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                <Icons.Shirt />
+                                <span className="text-[10px] mt-1 font-black uppercase tracking-widest">PRENDA</span>
+                            </button>
+
+                            {/* Botón Texto */}
+                            <button 
+                                onClick={() => setActiveTool(activeTool === 'text' ? null : 'text')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 ${activeTool === 'text' ? 'bg-white text-black scale-105' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                <Icons.Text />
+                                <span className="text-[10px] mt-1 font-black uppercase tracking-widest">TEXTO</span>
+                            </button>
+                            
+                            {/* Botón Subir Imagen */}
+                            <label className="flex flex-col items-center justify-center p-3 text-gray-400 hover:text-white cursor-pointer transition-all hover:scale-105">
+                                <Icons.Image />
+                                <span className="text-[10px] mt-1 font-black uppercase tracking-widest">SUBIR</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            </label>
+                            
+                            {/* Botón Editar (Solo aparece si hay selección) */}
+                            {selectedId && (
+                                <button 
+                                    onClick={() => setActiveTool(activeTool === 'edit' ? null : 'edit')}
+                                    className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 ${activeTool === 'edit' ? 'bg-white text-black scale-105' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    <Icons.Rotate />
+                                    <span className="text-[10px] mt-1 font-black uppercase tracking-widest">AJUSTES</span>
+                                </button>
                             )}
+
+                            {/* Botón Finalizar */}
+                            <button 
+                                onClick={() => alert('Diseño listo para enviar a SoulClown.')}
+                                className="ml-4 bg-white text-black px-6 py-2 rounded-full font-black tracking-widest hover:scale-105 transition shadow-lg hidden md:block"
+                            >
+                                FINALIZAR
+                            </button>
                         </div>
                     </div>
-                    )}
                 </div>
             );
         }
 
-        try {
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
-        } catch (error) {
-            console.error(error);
-            document.getElementById('error-container').style.display = 'block';
-            document.getElementById('error-container').innerText = 'Error fatal al iniciar la app: ' + error.message;
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
